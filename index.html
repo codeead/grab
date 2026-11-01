@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#272d6e">
+<title>GR@B MART · RGB 단독공연 사전 이벤트</title>
+<meta name="description" content="앨범 표지만 보고 곡을 담으면 취향을 계산해드려요. 2026.11.09 RGB 단독공연 GR@B">
+<meta property="og:title" content="GR@B MART · 표지만 보고 담아보세요">
+<meta property="og:description" content="최대 5곡. 계산하면 취향 분석과 영수증이 나와요. 2026.11.09 RGB 단독공연 GR@B">
+<meta property="og:image" content="https://codeead.github.io/grab/og.jpg">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&display=swap">
+<style>
+  /* 색·질감은 셋리스트(QR) 사이트 그대로 */
+  :root {
+    --navy: #272d6e;
+    --navy-2: #1d2257;
+    --apple: #8dc63f;
+    --line: #7b9be8;
+    --ink: #eceef6;
+    --cap: #c9cadb;
+    --steel: #8fa6c0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--navy); color: var(--ink);
+    font-family: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; overflow-x: hidden;
+  }
+  body { isolation: isolate; }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1; opacity: .07; mix-blend-mode: soft-light;
+    background: url(asset/glitch.webp) center / cover;
+  }
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1; opacity: .22; mix-blend-mode: overlay;
+    background: url(asset/noise.jpeg) 0 0 / 370px auto;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+  .ik { color: transparent; -webkit-text-stroke: 1.5px var(--line);
+    background: url(asset/noise-ink.webp) 0 0 / 160px auto, var(--apple); background-blend-mode: multiply;
+    -webkit-background-clip: text; background-clip: text;
+    filter: contrast(1.25) drop-shadow(-2px 2px 0 var(--line)); }
+
+  .page { max-width: 480px; margin: 0 auto; padding: 0 8vw; }
+  @media (min-width: 480px) { .page { padding: 0 36px; } }
+
+  .head { position: relative; text-align: center; padding: 56px 0 26px; }
+  .head .kick { font-family: "Archivo Black", sans-serif; font-size: 15px; letter-spacing: .06em; color: var(--line); }
+  .head h1 { font-family: "Archivo Black", sans-serif; font-weight: 400; font-size: clamp(54px, 17vw, 84px); line-height: .95; margin-top: 4px;
+    -webkit-text-stroke-width: 3px; filter: contrast(1.25) drop-shadow(-5px 5px 0 var(--line)); letter-spacing: -.02em; }
+  .head h1.gname { font-size: clamp(40px, 12.5vw, 64px); line-height: 1.02; }
+  .head .sub { margin-top: 12px; font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--cap); text-transform: uppercase; }
+  .head .lead { margin-top: 18px; font-size: 14px; line-height: 1.7; color: var(--cap); word-break: keep-all; }
+  .head .cart { position: absolute; z-index: -1; width: 120px; right: -6vw; top: 22px; transform: rotate(10deg); opacity: .55; }
+
+  /* 진열대: 표지 + 가사 키워드(셋리스트 가격표 자리) */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 7px; row-gap: 22px; padding: 6px 0 20px; }
+  .item { position: relative; display: block; width: 100%; text-align: left; }
+  .pic { position: relative; aspect-ratio: 1; overflow: hidden; background: linear-gradient(150deg, #3d4a63, #23262b 70%);
+    transition: transform .18s ease-out, filter .18s ease-out; }
+  .pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .item:active .pic { transform: scale(.97); }
+  .kw { position: absolute; z-index: 2; font-family: "Archivo Black", "Pretendard Variable", sans-serif; font-weight: 900;
+    font-size: clamp(20px, 6.4vw, 28px); line-height: 1; white-space: nowrap; pointer-events: none; }
+  .t0 { left: -14px; top: -14px; transform: rotate(-5deg); }
+  .t1 { right: -12px; bottom: 14%; transform: rotate(4deg); }
+  .t2 { left: -12px; bottom: 10%; transform: rotate(-3deg); }
+  .t3 { left: -16px; top: 10%; transform: rotate(3deg); }
+  .t4 { right: -14px; top: 12%; transform: rotate(-4deg); }
+  .t5 { right: -10px; bottom: 8%; transform: rotate(5deg); }
+  /* 담은 칸: 하늘색 테두리 + 담은 순서 스티커 */
+  .item.on .pic::after { content: ""; position: absolute; inset: 0; border: 4px solid var(--line); }
+  .badge { position: absolute; z-index: 3; right: -8px; top: -10px; width: 46px; height: 46px; border-radius: 50%;
+    display: none; place-items: center; transform: rotate(-12deg);
+    background: var(--ink); color: var(--navy); border: 3px solid var(--line); box-shadow: -3px 3px 0 var(--line);
+    font-family: "Archivo Black", sans-serif; font-size: 16px; }
+  .item.on .badge { display: grid; animation: pop .25s cubic-bezier(.2, .9, .3, 1.3); }
+  .full .item:not(.on) .pic { filter: grayscale(.7) brightness(.55); }
+  @keyframes pop { from { transform: rotate(-12deg) scale(.4); } }
+
+  /* 하단 카트 바 */
+  .bar { position: fixed; z-index: 10; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: var(--navy-2); border-top: 1.5px solid rgba(123,155,232,.5); }
+  .bar .in { max-width: 480px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .bar .count { font-family: Anton, sans-serif; font-size: 28px; letter-spacing: .02em; }
+  .bar .count small { display: block; font-family: "Pretendard Variable", sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .14em; color: var(--cap); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 20px; min-height: 50px;
+    background: var(--apple); color: var(--navy-2); font-weight: 900; font-size: 16px; border: 2px solid var(--line); box-shadow: -4px 4px 0 var(--line);
+    transition: transform .12s ease-out, box-shadow .12s ease-out, opacity .2s; }
+  .btn:active { transform: translate(-2px, 2px); box-shadow: -2px 2px 0 var(--line); }
+  .btn:disabled { opacity: .35; pointer-events: none; }
+  .btn.ghost { background: var(--navy); color: var(--ink); }
+  .btns { display: grid; gap: 14px; margin-top: 28px; }
+  .toast { position: fixed; z-index: 20; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0;
+    padding: 10px 16px; background: var(--ink); color: var(--navy); font-size: 14px; font-weight: 800; white-space: nowrap;
+    transition: opacity .2s, transform .2s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* 분석 결과 */
+  .who { margin-top: 10px; font-size: clamp(22px, 6.6vw, 28px); font-weight: 900; letter-spacing: -.03em; line-height: 1.3; word-break: keep-all; }
+  .body { margin-top: 16px; font-size: 15.5px; line-height: 1.8; word-break: keep-all; }
+  .body p + p { margin-top: 10px; }
+  .block { margin-top: 30px; }
+  .block h3 { font-size: 11px; font-weight: 800; letter-spacing: .2em; color: var(--line); padding-bottom: 8px; border-bottom: 1.5px solid rgba(123,155,232,.4); }
+  .block .txt { margin-top: 12px; font-size: 15px; line-height: 1.7; word-break: keep-all; }
+  .bought { list-style: none; margin-top: 12px; display: grid; gap: 10px; }
+  .bought li { display: grid; grid-template-columns: 52px 1fr auto; gap: 12px; align-items: center; }
+  .bought img { width: 52px; height: 52px; object-fit: cover; display: block; }
+  .bought b { display: block; font-size: 15px; word-break: keep-all; }
+  .bought span { font-size: 12.5px; color: var(--cap); }
+  .bought .t { font-family: Anton, sans-serif; font-size: 18px; color: var(--ink); }
+  .total { margin-top: 12px; padding-top: 10px; border-top: 1.5px dashed rgba(123,155,232,.4); display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .total .t { font-family: Anton, sans-serif; font-size: 26px; }
+  .total span { font-size: 13px; color: var(--cap); word-break: keep-all; }
+  .reco { margin-top: 12px; display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center; }
+  .reco img { width: 96px; height: 96px; object-fit: cover; display: block; }
+  .reco b { display: block; font-size: 17px; word-break: keep-all; }
+  .reco span { font-size: 13px; color: var(--cap); }
+
+  /* 영수증 */
+  .slot { margin: 6px -4px 0; height: 14px; background: #10133a; border-radius: 7px; box-shadow: inset 0 3px 6px rgba(0,0,0,.6); }
+  .paper { margin: -7px 6px 0; overflow: hidden; }
+  .paper img { display: block; width: 100%; height: auto; box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    animation: print 1.8s steps(14) both; -webkit-touch-callout: default; }
+  @keyframes print { from { transform: translateY(-100%); } }
+  @media (prefers-reduced-motion: reduce) { .paper img, .item.on .badge { animation: none; } }
+  .hint { margin-top: 18px; padding: 12px 14px; border: 1.5px dashed var(--line); font-size: 13.5px; line-height: 1.6; color: var(--cap); word-break: keep-all; }
+  .hint b { color: var(--ink); }
+  .loading { padding: 80px 0; text-align: center; color: var(--cap); font-size: 14px; }
+
+  footer { text-align: center; padding: 48px 16px calc(44px + env(safe-area-inset-bottom)); color: var(--cap); font-size: 12px; letter-spacing: .04em; }
+  footer img { width: 150px; opacity: .85; margin-bottom: 10px; }
+  body.picking footer { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
+</style>
+</head>
+<body>
+<main id="app"></main>
+<footer>
+  <img src="asset/logo.webp" alt="GR@B">
+  <p>2026.11.09 RGB 단독공연 · LIVE AT L29</p>
+</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+// 표지: asset/cover/<no>.webp, 영수증 줄: receipt/s<no>.png (make_receipt.py 로 생성)
+// 곡 순서를 바꾸면 make_receipt.py 의 SONGS 도 같은 순서로
+const SONGS = [
+  ["November song", "백예린", "어쿠스틱 팝", "3:15", "RECORD"],
+  ["이유", "쏜애플", "J-록", "5:08", "우체통"],
+  ["무희", "바운디", "J-록", "3:54", "미래"],
+  ["사랑을 전하고 싶다든가", "Aimyon", "J-록", "4:06", "계란 후라이"],
+  ["순혈주의자", "달의하루", "J-록", "4:09", "호기심"],
+  ["Inferno", "Mrs. GREEN APPLE", "J-록", "3:32", "멜로디"],
+  ["Cliffs Of Dover", "Eric Johnson", "기타 인스트루멘탈", "4:12", "NO LYRICS"],
+  ["퇴사할게여", "소연", "K-POP 밴드", "3:32", "낭만"],
+  ["Supernova - rock ver", "aespa", "K-POP 밴드", "3:30", "BOMB"],
+  ["Black mamba - rock ver", "aespa", "K-POP 밴드", "3:34", "광야"],
+  ["들려주고 싶었던", "이승윤", "팝 록", "4:52", "장미"],
+  ["Sub character", "윤하", "팝 록", "3:38", "EXTRA"],
+  ["monster", "권진아", "팝 록", "3:35", "거울"],
+  ["Stargazing", "The Poles", "인디 록", "4:08", "NIRVANA"],
+  ["High Tide", "The Poles", "인디 록", "4:08", "파도"],
+  ["너와 나", "한로로", "인디 록", "3:38", "새벽"],
+  ["내 방안은 푸른 바다", "리도어", "인디 록", "7:57", "맨발"],
+  ["Detox", "Surl", "인디 록", "4:14", "추앙"],
+  ["SCHOOL FICTION", "버섯제국", "펑크 록", "6:03", "방정식"],
+  ["질주", "버섯제국", "펑크 록", "4:38", "봄"],
+].map(([title, artist, genre, time, kw], i) => ({ no: i + 1, title, artist, genre, time, kw }));
+
+const TASTE = {
+  "어쿠스틱 팝": {
+    en: "ACOUSTIC POP", who: "필름카메라 들고 다니는 사람",
+    body: ["사진첩에 하늘 사진만 300장쯤 있을 것 같아요. 큰 소리보다 작은 소리에 더 오래 머무는 타입이에요.",
+      "다들 뛸 때 혼자 눈 감고 흔들흔들하고 있을 확률이 높아요. 그게 제일 멋있는 감상법인 거 알죠?"],
+    aisle: "따뜻한 음료 코너. 캔커피 말고 꼭 라떼로 고르세요.",
+  },
+  "J-록": {
+    en: "J-ROCK", who: "가사 해석 찾다가 새벽 세 시 된 사람",
+    body: ["노래 듣다가 '이거 무슨 뜻이지?' 하고 번역 찾아보다 밤새 본 적 있죠. 감정선이 롤러코스터인 노래일수록 좋아해요.",
+      "일본어를 몰라도 후렴은 따라 부르는 편이에요. 발음은 대충이어도 마음은 진심이고요."],
+    aisle: "수입 과자 코너. 늘 먹던 맛 말고 한정판부터 집어요.",
+  },
+  "기타 인스트루멘탈": {
+    en: "GUITAR SOLO", who: "가사 없어도 되는 사람",
+    body: ["보컬 없는 곡을 골랐다는 건, 귀가 이미 기타 줄 위에 가 있다는 뜻이에요.",
+      "공연 내내 기타리스트 손가락만 보고 있다가 끝나고 '아까 그 벤딩 미쳤다'라고 할 사람. 맞죠?"],
+    aisle: "공구 코너. 손으로 만지작거리는 거 좋아하잖아요.",
+  },
+  "K-POP 밴드": {
+    en: "K-POP BAND", who: "아는 노래 나오면 리액션 두 배인 사람",
+    body: ["익숙한 노래가 밴드 사운드로 터질 때 제일 신나는 타입이에요. 첫 소절 듣자마자 '헐 이거!' 소리가 먼저 나와요.",
+      "떼창 파트에서 제일 크게 들리는 목소리가 아마 당신일 거예요."],
+    aisle: "행사 매대. 1+1 써 붙어 있으면 그냥 못 지나가요.",
+  },
+  "팝 록": {
+    en: "POP ROCK", who: "노래방 18번이 확실한 사람",
+    body: ["멜로디가 좋아야 귀가 열리는 타입이에요. 처음 듣는 노래도 두 번째 후렴쯤엔 벌써 흥얼거리고 있어요.",
+      "플레이리스트 공유해달라는 말, 꽤 자주 듣죠?"],
+    aisle: "베스트셀러 매대. 근데 이유 있는 베스트셀러만 담아요.",
+  },
+  "인디 록": {
+    en: "INDIE ROCK", who: "'이 밴드 아직 뜨면 안 돼' 하는 사람",
+    body: ["남들 모르는 좋은 노래를 먼저 알고 있다는 게 은근히 뿌듯한 타입이에요. 가사 한 줄에 그날 기분이 정해지기도 하고요.",
+      "공연 끝나고 집 가는 길에 이어폰으로 뭘 들을지 고르는 데만 10분 쓸 거예요."],
+    aisle: "로컬 식품 코너. 원산지 꼭 확인하고 담아요.",
+  },
+  "펑크 록": {
+    en: "PUNK ROCK", who: "스피커 앞자리 사수하는 사람",
+    body: ["빠르고 시끄러울수록 좋은 타입이에요. 공연장 명당은 무조건 스피커 앞이라고 생각하죠.",
+      "공연 끝나면 목소리가 반쯤 남아 있을 예정이에요. 물 꼭 챙겨 오세요."],
+    aisle: "에너지 드링크 코너. 하나로 될까요?",
+  },
+  ALL: {
+    en: "ALL ROUNDER", who: "카트에 장르 섞어 담는 사람",
+    body: ["장르를 안 가리는 잡식 리스너예요. 셔플 재생을 진심으로 즐기는 몇 안 되는 사람이기도 하고요.",
+      "이번 공연은 처음부터 끝까지 지루할 틈이 없을 거예요. 장르가 바뀔 때마다 혼자 신나 있을 테니까요."],
+    aisle: "시식 코너. 한 바퀴 돌면서 전부 하나씩 먹어봐요.",
+  },
+};
+
+const MEMO = [, // 담은 곡 수별 계산원 한마디
+  "딱 하나만 사러 왔다가 진짜 하나만 사 가는 분. 그 결단력 존경합니다.",
+  "둘이면 충분하죠. 고르고 고른 티가 나요.",
+  "적당히 담고 적당히 아쉬운, 제일 건강한 장보기네요.",
+  "하나 더 담을까 말까 고민하다 참으신 거 다 봤어요.",
+  "카트 꽉 채우셨네요. 한도 직전까지 긁는 스타일이시군요.",
+];
+
+// 가장 많이 담은 장르. 셋 이상 동률이면 올라운더, 둘이 동률이면 먼저 담은 곡의 장르
+function taste(picks) {
+  const n = {};
+  for (const s of picks) n[s.genre] = (n[s.genre] || 0) + 1;
+  const max = Math.max(...Object.values(n));
+  const top = Object.keys(n).filter(g => n[g] === max);
+  return top.length >= 3 ? "ALL" : picks.find(s => top.includes(s.genre)).genre;
+}
+{ const g = no => SONGS[no - 1];
+  console.assert(taste([g(1)]) === "어쿠스틱 팝");
+  console.assert(taste([g(14), g(2), g(3), g(15)]) === "인디 록");
+  console.assert(taste([g(14), g(2), g(19)]) === "ALL");
+  console.assert(taste([g(2), g(14), g(15), g(3)]) === "J-록"); }
+
+const V = "1"; // 이미지를 바꾸면 올리기 (폰 캐시)
+const MAX = 5, ROW = 52;
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const pad = n => String(n).padStart(2, "0");
+const secs = t => { const [m, s] = t.split(":").map(Number); return m * 60 + s; };
+const clock = n => `${Math.floor(n / 60)}:${pad(n % 60)}`;
+const cover = s => `asset/cover/${s.no}.webp?v=${V}`;
+const INAPP = /Instagram|KAKAOTALK|FBAN|FBAV|NAVER|Line\/|everytimeApp/i.test(navigator.userAgent);
+
+const app = document.getElementById("app");
+const shelf = [...SONGS].sort(() => Math.random() - .5); // 들어올 때마다 진열 순서 섞기
+let picks = [], receipt = null; // receipt: 지금 picks로 만든 영수증 { key, blob, url }
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 1600);
+}
+
+function pickPage() {
+  return `
+  <div class="page">
+    <div class="head">
+      <img class="cart" src="asset/cart.webp" alt="">
+      <p class="kick">GR@B MART · PRE-EVENT</p>
+      <h1 class="ik">PICK UP</h1>
+      <p class="sub">2026.11.09 RGB 단독공연</p>
+      <p class="lead">공연에서 연주할 ${SONGS.length}곡이 진열돼 있어요.<br>제목은 비밀. 표지랑 가사 한 단어만 보고<br>끌리는 곡을 1~${MAX}곡 담아주세요.</p>
+    </div>
+    <div class="grid" id="shelf">${shelf.map((s, i) => `
+      <button class="item" data-no="${s.no}" aria-pressed="false" aria-label="표지 ${i + 1}, 가사 키워드 ${esc(s.kw)}">
+        <span class="kw ik t${i % 6}">${esc(s.kw)}</span>
+        <div class="pic"><img src="${cover(s)}" alt="" loading="${i < 6 ? "eager" : "lazy"}"></div>
+        <span class="badge"></span>
+      </button>`).join("")}
+    </div>
+  </div>
+  <div class="bar"><div class="in">
+    <p class="count"><small>MY CART</small><span id="n">0</span> / ${MAX}</p>
+    <button class="btn" id="go">계산하기 →</button>
+  </div></div>`;
+}
+
+function syncCart() {
+  for (const el of document.querySelectorAll("#shelf .item")) {
+    const i = picks.findIndex(s => s.no === +el.dataset.no);
+    el.classList.toggle("on", i >= 0);
+    el.setAttribute("aria-pressed", i >= 0);
+    el.querySelector(".badge").textContent = i >= 0 ? pad(i + 1) : "";
+  }
+  document.getElementById("shelf").classList.toggle("full", picks.length >= MAX);
+  document.getElementById("n").textContent = picks.length;
+  document.getElementById("go").disabled = !picks.length;
+}
+
+function resultPage() {
+  const key = taste(picks), t = TASTE[key];
+  const total = picks.reduce((a, s) => a + secs(s.time), 0);
+  const ramen = Math.floor(total / 240);
+  const rest = SONGS.filter(s => !picks.includes(s));
+  const same = rest.filter(s => s.genre === key);
+  const reco = (same.length ? same : rest)[Math.floor(Math.random() * (same.length || rest.length))];
+  return `
+  <div class="page">
+    <div class="head">
+      <p class="kick">GR@B MART · TASTE REPORT</p>
+      <h1 class="ik gname">${t.en}</h1>
+    </div>
+    <p class="who">당신은<br>${t.who}</p>
+    <div class="body">${t.body.map(p => `<p>${p}</p>`).join("")}</div>
+    <div class="block">
+      <h3>구매 내역</h3>
+      <ul class="bought">${picks.map(s => `
+        <li><img src="${cover(s)}" alt=""><div><b>${esc(s.title)}</b><span>${esc(s.artist)} · ${esc(s.genre)}</span></div><span class="t">${s.time}</span></li>`).join("")}
+      </ul>
+      <div class="total"><span>${ramen ? `컵라면 ${ramen}개 끓일 수 있는 시간` : "컵라면 하나도 못 끓이는 시간. 짧고 굵게!"}</span><b class="t">${clock(total)}</b></div>
+    </div>
+    <div class="block"><h3>자주 가는 코너</h3><p class="txt">${t.aisle}</p></div>
+    <div class="block">
+      <h3>이 상품도 담아보세요</h3>
+      <div class="reco"><img src="${cover(reco)}" alt=""><div><b>${esc(reco.title)}</b><span>${esc(reco.artist)} · 11월 9일에 들을 수 있어요</span></div></div>
+    </div>
+    <div class="block"><h3>계산원 메모</h3><p class="txt">${MEMO[picks.length]}</p></div>
+    <div class="btns">
+      <a class="btn" href="#/receipt">영수증 출력하기 →</a>
+      <a class="btn ghost" href="#">다시 담으러 가기</a>
+    </div>
+  </div>`;
+}
+
+// 영수증: 위(로고~표 머리) + 담은 곡 수만큼 줄 + 아래(날짜~THANK YOU)
+const load = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = `${src}?v=${V}`; });
+async function makeReceipt() {
+  const key = picks.map(s => s.no).join();
+  if (receipt?.key === key) return receipt;
+  const [top, bottom, ...rows] = await Promise.all([
+    load("receipt/top.png"), load("receipt/bottom.png"),
+    ...picks.flatMap((s, i) => [load(`receipt/n${i + 1}.png`), load(`receipt/s${s.no}.png`)]),
+  ]);
+  const c = document.createElement("canvas");
+  c.width = top.width; c.height = top.height + picks.length * ROW + bottom.height;
+  const x = c.getContext("2d");
+  x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
+  x.drawImage(top, 0, 0);
+  rows.forEach((im, i) => x.drawImage(im, 0, top.height + (i >> 1) * ROW));
+  x.drawImage(bottom, 0, top.height + picks.length * ROW);
+  const blob = await new Promise(ok => c.toBlob(ok, "image/png"));
+  if (receipt) URL.revokeObjectURL(receipt.url);
+  return receipt = { key, blob, url: URL.createObjectURL(blob) };
+}
+
+function receiptPage() {
+  makeReceipt().then(r => {
+    const el = document.getElementById("paper");
+    if (el) el.innerHTML = `<img src="${r.url}" alt="GR@B 영수증: ${picks.map(s => esc(s.title)).join(", ")}">`;
+  }).catch(() => toast("영수증을 못 불러왔어요. 새로고침 해주세요"));
+  return `
+  <div class="page">
+    <div class="head">
+      <p class="kick">GR@B MART · RECEIPT</p>
+      <h1 class="ik">THANK<br>YOU</h1>
+    </div>
+    <div class="slot"></div>
+    <div class="paper" id="paper"><p class="loading">영수증 출력 중…</p></div>
+    ${INAPP ? `<p class="hint">앱 안에서 열린 화면이라 바로 공유가 안 될 수 있어요.<br><b>영수증을 길게 눌러 사진에 저장</b>한 다음 인스타 스토리에 올려주세요.</p>` : ""}
+    <div class="btns">
+      <button class="btn" id="share">인스타 스토리에 공유하기</button>
+      <button class="btn ghost" id="save">이미지 저장</button>
+      <a class="btn ghost" href="#" id="again">처음부터 다시 담기</a>
+    </div>
+  </div>`;
+}
+
+function save(r) {
+  const a = document.createElement("a");
+  a.href = r.url; a.download = "GRAB-receipt.png"; a.click();
+}
+
+async function share() {
+  const r = await makeReceipt();
+  const file = new File([r.blob], "GRAB-receipt.png", { type: "image/png" });
+  if (navigator.canShare?.({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); }
+    catch (e) { if (e.name !== "AbortError") toast("영수증을 길게 눌러 저장해주세요"); }
+  } else if (INAPP) toast("영수증을 길게 눌러 저장해주세요");
+  else { save(r); toast("저장한 이미지를 스토리에 올려주세요"); }
+}
+
+app.addEventListener("click", e => {
+  const item = e.target.closest("#shelf .item");
+  if (item) {
+    const s = SONGS[item.dataset.no - 1], i = picks.indexOf(s);
+    if (i >= 0) picks.splice(i, 1);
+    else if (picks.length >= MAX) return toast(`카트가 꽉 찼어요 (최대 ${MAX}곡)`);
+    else picks.push(s);
+    return syncCart();
+  }
+  const id = e.target.closest("button, a")?.id;
+  if (id === "go") location.hash = "#/result";
+  if (id === "share") share();
+  if (id === "save") makeReceipt().then(save);
+  if (id === "again") picks = [];
+});
+
+function route() {
+  // 새로고침하면 카트가 비니까 결과 주소에 남아 있으면 진열대로
+  if (!picks.length && location.hash) history.replaceState(null, "", location.pathname);
+  const page = location.hash;
+  document.body.classList.toggle("picking", !/^#\/(result|receipt)$/.test(page));
+  app.innerHTML = page === "#/result" ? resultPage() : page === "#/receipt" ? receiptPage() : pickPage();
+  if (document.getElementById("shelf")) syncCart();
+  scrollTo(0, 0);
+}
+addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>
