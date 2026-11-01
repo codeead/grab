@@ -255,6 +255,7 @@ const V = "1"; // 이미지를 바꾸면 올리기 (폰 캐시)
 const MAX = 5, ROW = 52;
 const STORY_W = 1080, STORY_H = 1920, SAFE_X = 140, SAFE_Y = 240; // 위아래 240px은 인스타 프로필·답장창 자리
 const GRAIN = 70; // 스토리 배경 노이즈 세기
+const BLUR = 5;   // 스토리 배경 표지 뿌옇기: 절반으로 줄이는 횟수 (1 늘 때마다 2배 뿌옇게)
 const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const pad = n => String(n).padStart(2, "0");
 const secs = t => { const [m, s] = t.split(":").map(Number); return m * 60 + s; };
@@ -368,13 +369,23 @@ async function makeReceipt() {
   st.width = STORY_W; st.height = STORY_H;
   const y = st.getContext("2d");
   // 표지를 기울여 바둑판으로. 이웃한 칸끼리 다른 표지가 오게 (r + c) 순서, 한 장이면 화면 가득
+  // 표지 콜라주를 원래 크기로 그린 뒤 뿌옇게
   const span = Math.hypot(STORY_W, STORY_H), size = covers.length > 1 ? span / 4 : span, n = Math.round(span / size);
   y.save(); y.translate(STORY_W / 2, STORY_H / 2); y.rotate(-8 * Math.PI / 180);
   for (let r = 0; r < n; r++) for (let col = 0; col < n; col++)
     y.drawImage(covers[(r + col) % covers.length], -span / 2 + col * size, -span / 2 + r * size, size, size);
   y.restore();
+  // 절반씩 줄였다가 2배씩 다시 키움 = 부드러운 블러 (iOS 사파리는 캔버스 blur 필터를 못 믿어서)
+  const resize = (cv, w, h) => {
+    const o = document.createElement("canvas"); o.width = w; o.height = h;
+    const u = o.getContext("2d"); u.imageSmoothingQuality = "high"; u.drawImage(cv, 0, 0, w, h); return o;
+  };
+  let soft = st;
+  for (let i = 0; i < BLUR; i++) soft = resize(soft, Math.ceil(soft.width / 2), Math.ceil(soft.height / 2));
+  for (let i = 0; i < BLUR; i++) soft = resize(soft, soft.width * 2, soft.height * 2);
+  y.drawImage(soft, 0, 0, STORY_W, STORY_H);
   const blend = (op, a, fill) => { y.globalCompositeOperation = op; y.globalAlpha = a; y.fillStyle = fill; y.fillRect(0, 0, STORY_W, STORY_H); };
-  blend("multiply", .55, "#272d6e"); // 영수증이 튀게 남색으로 눌러줌
+  blend("multiply", .75, "#272d6e"); // 영수증이 튀게 남색으로 눌러줌
   const tile = y.createPattern(noise, "repeat");
   tile.setTransform(new DOMMatrix().scale(1.4));
   blend("overlay", .9, tile);
