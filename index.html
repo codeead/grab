@@ -10,7 +10,7 @@
 <meta property="og:description" content="최대 5곡. 계산하면 취향 분석과 영수증이 나와요. 2026.11.09 RGB 단독공연 GR@B">
 <meta property="og:image" content="https://codeead.github.io/grab/og.jpg">
 <meta property="og:type" content="website">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&display=swap">
@@ -29,7 +29,7 @@
   html { -webkit-text-size-adjust: 100%; }
   body {
     background: var(--navy); color: var(--ink);
-    font-family: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", system-ui, sans-serif;
+    font-family: Pretendard, -apple-system, "Apple SD Gothic Neo", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; overflow-x: hidden;
   }
   body { isolation: isolate; }
@@ -68,14 +68,14 @@
     transition: transform .18s ease-out, filter .18s ease-out; }
   .pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .item:active .pic { transform: scale(.97); }
-  .kw { position: absolute; z-index: 2; font-family: "Archivo Black", "Pretendard Variable", sans-serif; font-weight: 900;
+  .kw { position: absolute; z-index: 2; font-family: "Archivo Black", Pretendard, sans-serif; font-weight: 800; -webkit-text-stroke-width: 1px;
     font-size: clamp(20px, 6.4vw, 28px); line-height: 1; white-space: nowrap; pointer-events: none; }
-  .t0 { left: -14px; top: -14px; transform: rotate(-5deg); }
-  .t1 { right: -12px; bottom: 14%; transform: rotate(4deg); }
-  .t2 { left: -12px; bottom: 10%; transform: rotate(-3deg); }
-  .t3 { left: -16px; top: 10%; transform: rotate(3deg); }
-  .t4 { right: -14px; top: 12%; transform: rotate(-4deg); }
-  .t5 { right: -10px; bottom: 8%; transform: rotate(5deg); }
+  .t0 { left: -14px; top: -14px; }
+  .t1 { right: -12px; bottom: 14%; }
+  .t2 { left: -12px; bottom: 10%; }
+  .t3 { left: -16px; top: 10%; }
+  .t4 { right: -14px; top: 12%; }
+  .t5 { right: -10px; bottom: 8%; }
   /* 담은 칸: 하늘색 테두리 + 담은 순서 스티커 */
   .item.on .pic::after { content: ""; position: absolute; inset: 0; border: 4px solid var(--line); }
   .badge { position: absolute; z-index: 3; right: -8px; top: -10px; width: 46px; height: 46px; border-radius: 50%;
@@ -91,7 +91,7 @@
     background: var(--navy-2); border-top: 1.5px solid rgba(123,155,232,.5); }
   .bar .in { max-width: 480px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .bar .count { font-family: Anton, sans-serif; font-size: 28px; letter-spacing: .02em; }
-  .bar .count small { display: block; font-family: "Pretendard Variable", sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .14em; color: var(--cap); }
+  .bar .count small { display: block; font-family: Pretendard, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .14em; color: var(--cap); }
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 20px; min-height: 50px;
     background: var(--apple); color: var(--navy-2); font-weight: 900; font-size: 16px; border: 2px solid var(--line); box-shadow: -4px 4px 0 var(--line);
     transition: transform .12s ease-out, box-shadow .12s ease-out, opacity .2s; }
@@ -253,6 +253,7 @@ function taste(picks) {
 const V = "1"; // 이미지를 바꾸면 올리기 (폰 캐시)
 const MAX = 5, ROW = 52;
 const STORY_W = 1080, STORY_H = 1920, SAFE_X = 140, SAFE_Y = 240; // 위아래 240px은 인스타 프로필·답장창 자리
+const GRAIN = 70; // 스토리 배경 노이즈 세기
 const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const pad = n => String(n).padStart(2, "0");
 const secs = t => { const [m, s] = t.split(":").map(Number); return m * 60 + s; };
@@ -349,8 +350,10 @@ async function makeReceipt() {
   if (receipt?.key === key) return receipt;
   const [top, bottom, noise, glitch, ...rows] = await Promise.all([
     load("receipt/top.png"), load("receipt/bottom.png"), load("asset/noise.jpeg"), load("asset/glitch.webp"),
+    ...picks.map(s => load(`asset/cover/${s.no}.webp`)),
     ...picks.flatMap((s, i) => [load(`receipt/n${i + 1}.png`), load(`receipt/s${s.no}.png`)]),
   ]);
+  const covers = rows.splice(0, picks.length);
   const c = document.createElement("canvas");
   c.width = top.width; c.height = top.height + picks.length * ROW + bottom.height;
   const x = c.getContext("2d");
@@ -359,22 +362,32 @@ async function makeReceipt() {
   rows.forEach((im, i) => x.drawImage(im, 0, top.height + (i >> 1) * ROW));
   x.drawImage(bottom, 0, top.height + picks.length * ROW);
 
-  // 스토리용 9:16: 사이트 배경 위 가운데에, 인스타 UI가 덮는 위아래는 비워둠
+  // 스토리용 9:16: 담은 표지 콜라주 + 센 노이즈 위 가운데에, 인스타 UI가 덮는 위아래는 비워둠
   const st = document.createElement("canvas");
   st.width = STORY_W; st.height = STORY_H;
   const y = st.getContext("2d");
-  y.fillStyle = "#272d6e"; y.fillRect(0, 0, STORY_W, STORY_H);
-  const g = Math.max(STORY_W / glitch.width, STORY_H / glitch.height);
-  y.globalCompositeOperation = "soft-light"; y.globalAlpha = .07;
-  y.drawImage(glitch, (STORY_W - glitch.width * g) / 2, (STORY_H - glitch.height * g) / 2, glitch.width * g, glitch.height * g);
+  // 표지를 기울여 바둑판으로. 이웃한 칸끼리 다른 표지가 오게 (r + c) 순서, 한 장이면 화면 가득
+  const span = Math.hypot(STORY_W, STORY_H), size = covers.length > 1 ? span / 4 : span, n = Math.round(span / size);
+  y.save(); y.translate(STORY_W / 2, STORY_H / 2); y.rotate(-8 * Math.PI / 180);
+  for (let r = 0; r < n; r++) for (let col = 0; col < n; col++)
+    y.drawImage(covers[(r + col) % covers.length], -span / 2 + col * size, -span / 2 + r * size, size, size);
+  y.restore();
+  const blend = (op, a, fill) => { y.globalCompositeOperation = op; y.globalAlpha = a; y.fillStyle = fill; y.fillRect(0, 0, STORY_W, STORY_H); };
+  blend("multiply", .55, "#272d6e"); // 영수증이 튀게 남색으로 눌러줌
   const tile = y.createPattern(noise, "repeat");
-  tile.setTransform(new DOMMatrix().scale(STORY_W / 390 * 370 / noise.width)); // 폰 화면에서 보이는 결 크기 그대로
-  y.globalCompositeOperation = "overlay"; y.globalAlpha = .22;
-  y.fillStyle = tile; y.fillRect(0, 0, STORY_W, STORY_H);
+  tile.setTransform(new DOMMatrix().scale(1.4));
+  blend("overlay", .9, tile);
+  y.globalCompositeOperation = "soft-light"; y.globalAlpha = .5;
+  const g = Math.max(STORY_W / glitch.width, STORY_H / glitch.height);
+  y.drawImage(glitch, (STORY_W - glitch.width * g) / 2, (STORY_H - glitch.height * g) / 2, glitch.width * g, glitch.height * g);
   y.globalCompositeOperation = "source-over"; y.globalAlpha = 1;
+  // 필름 그레인
+  const px = y.getImageData(0, 0, STORY_W, STORY_H), d = px.data;
+  for (let i = 0; i < d.length; i += 4) { const v = (Math.random() - .5) * GRAIN; d[i] += v; d[i + 1] += v; d[i + 2] += v; }
+  y.putImageData(px, 0, 0);
   const k = Math.min((STORY_W - 2 * SAFE_X) / c.width, (STORY_H - 2 * SAFE_Y) / c.height);
   const w = c.width * k, h = c.height * k;
-  y.shadowColor = "rgba(0,0,0,.4)"; y.shadowBlur = 40; y.shadowOffsetY = 16;
+  y.shadowColor = "rgba(0,0,0,.55)"; y.shadowBlur = 50; y.shadowOffsetY = 18;
   y.drawImage(c, (STORY_W - w) / 2, (STORY_H - h) / 2, w, h);
 
   const png = cv => new Promise(ok => cv.toBlob(ok, "image/png"));
