@@ -134,6 +134,8 @@
   @media (prefers-reduced-motion: reduce) { .paper img, .item.on .badge { animation: none; } }
   .hint { margin-top: 18px; padding: 12px 14px; border: 1.5px dashed var(--line); font-size: 13.5px; line-height: 1.6; color: var(--cap); word-break: keep-all; }
   .hint b { color: var(--ink); }
+  .note { margin-top: 16px; font-size: 12.5px; line-height: 1.6; color: var(--cap); text-align: center; word-break: keep-all; }
+  .note b { color: var(--ink); }
   .loading { padding: 80px 0; text-align: center; color: var(--cap); font-size: 14px; }
 
   footer { text-align: center; padding: 48px 16px calc(44px + env(safe-area-inset-bottom)); color: var(--cap); font-size: 12px; letter-spacing: .04em; }
@@ -250,12 +252,14 @@ function taste(picks) {
 
 const V = "1"; // 이미지를 바꾸면 올리기 (폰 캐시)
 const MAX = 5, ROW = 52;
+const STORY_W = 1080, STORY_H = 1920, SAFE_X = 140, SAFE_Y = 240; // 위아래 240px은 인스타 프로필·답장창 자리
 const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const pad = n => String(n).padStart(2, "0");
 const secs = t => { const [m, s] = t.split(":").map(Number); return m * 60 + s; };
 const clock = n => `${Math.floor(n / 60)}:${pad(n % 60)}`;
 const cover = s => `asset/cover/${s.no}.webp?v=${V}`;
 const INAPP = /Instagram|KAKAOTALK|FBAN|FBAV|NAVER|Line\/|everytimeApp/i.test(navigator.userAgent);
+const PHONE = matchMedia("(pointer: coarse)").matches;
 
 const app = document.getElementById("app");
 const shelf = [...SONGS].sort(() => Math.random() - .5); // 들어올 때마다 진열 순서 섞기
@@ -343,8 +347,8 @@ const load = src => new Promise((ok, no) => { const i = new Image(); i.onload = 
 async function makeReceipt() {
   const key = picks.map(s => s.no).join();
   if (receipt?.key === key) return receipt;
-  const [top, bottom, ...rows] = await Promise.all([
-    load("receipt/top.png"), load("receipt/bottom.png"),
+  const [top, bottom, noise, glitch, ...rows] = await Promise.all([
+    load("receipt/top.png"), load("receipt/bottom.png"), load("asset/noise.jpeg"), load("asset/glitch.webp"),
     ...picks.flatMap((s, i) => [load(`receipt/n${i + 1}.png`), load(`receipt/s${s.no}.png`)]),
   ]);
   const c = document.createElement("canvas");
@@ -354,15 +358,36 @@ async function makeReceipt() {
   x.drawImage(top, 0, 0);
   rows.forEach((im, i) => x.drawImage(im, 0, top.height + (i >> 1) * ROW));
   x.drawImage(bottom, 0, top.height + picks.length * ROW);
-  const blob = await new Promise(ok => c.toBlob(ok, "image/png"));
-  if (receipt) URL.revokeObjectURL(receipt.url);
-  return receipt = { key, blob, url: URL.createObjectURL(blob) };
+
+  // 스토리용 9:16: 사이트 배경 위 가운데에, 인스타 UI가 덮는 위아래는 비워둠
+  const st = document.createElement("canvas");
+  st.width = STORY_W; st.height = STORY_H;
+  const y = st.getContext("2d");
+  y.fillStyle = "#272d6e"; y.fillRect(0, 0, STORY_W, STORY_H);
+  const g = Math.max(STORY_W / glitch.width, STORY_H / glitch.height);
+  y.globalCompositeOperation = "soft-light"; y.globalAlpha = .07;
+  y.drawImage(glitch, (STORY_W - glitch.width * g) / 2, (STORY_H - glitch.height * g) / 2, glitch.width * g, glitch.height * g);
+  const tile = y.createPattern(noise, "repeat");
+  tile.setTransform(new DOMMatrix().scale(STORY_W / 390 * 370 / noise.width)); // 폰 화면에서 보이는 결 크기 그대로
+  y.globalCompositeOperation = "overlay"; y.globalAlpha = .22;
+  y.fillStyle = tile; y.fillRect(0, 0, STORY_W, STORY_H);
+  y.globalCompositeOperation = "source-over"; y.globalAlpha = 1;
+  const k = Math.min((STORY_W - 2 * SAFE_X) / c.width, (STORY_H - 2 * SAFE_Y) / c.height);
+  const w = c.width * k, h = c.height * k;
+  y.shadowColor = "rgba(0,0,0,.4)"; y.shadowBlur = 40; y.shadowOffsetY = 16;
+  y.drawImage(c, (STORY_W - w) / 2, (STORY_H - h) / 2, w, h);
+
+  const png = cv => new Promise(ok => cv.toBlob(ok, "image/png"));
+  const [blob, story] = await Promise.all([png(c), png(st)]);
+  if (receipt) { URL.revokeObjectURL(receipt.url); URL.revokeObjectURL(receipt.storyUrl); }
+  return receipt = { key, url: URL.createObjectURL(blob), story, storyUrl: URL.createObjectURL(story) };
 }
 
 function receiptPage() {
   makeReceipt().then(r => {
     const el = document.getElementById("paper");
-    if (el) el.innerHTML = `<img src="${r.url}" alt="GR@B 영수증: ${picks.map(s => esc(s.title)).join(", ")}">`;
+    // 앱 안 브라우저는 길게 눌러 저장하니까 스토리용 이미지를 보여줌
+    if (el) el.innerHTML = `<img src="${INAPP ? r.storyUrl : r.url}" alt="GR@B 영수증: ${picks.map(s => esc(s.title)).join(", ")}">`;
   }).catch(() => toast("영수증을 못 불러왔어요. 새로고침 해주세요"));
   return `
   <div class="page">
@@ -378,22 +403,23 @@ function receiptPage() {
       <button class="btn ghost" id="save">이미지 저장</button>
       <a class="btn ghost" href="#" id="again">처음부터 다시 담기</a>
     </div>
+    ${PHONE && !INAPP ? `<p class="note">이미지 저장을 누르고 공유 창에서 <b>'이미지 저장'</b>을 고르면 사진 앱에 들어가요.</p>` : ""}
   </div>`;
 }
 
-function save(r) {
-  const a = document.createElement("a");
-  a.href = r.url; a.download = "GRAB-receipt.png"; a.click();
-}
-
-async function share() {
+// 폰에서 다운로드하면 '파일' 앱으로 가버려서, 저장도 공유 창('이미지 저장' → 사진 앱)으로 보냄
+async function out(mode) {
   const r = await makeReceipt();
-  const file = new File([r.blob], "GRAB-receipt.png", { type: "image/png" });
-  if (navigator.canShare?.({ files: [file] })) {
+  const file = new File([r.story], "GRAB-receipt.png", { type: "image/png" });
+  if ((mode === "share" || PHONE) && navigator.canShare?.({ files: [file] })) {
     try { await navigator.share({ files: [file] }); }
-    catch (e) { if (e.name !== "AbortError") toast("영수증을 길게 눌러 저장해주세요"); }
-  } else if (INAPP) toast("영수증을 길게 눌러 저장해주세요");
-  else { save(r); toast("저장한 이미지를 스토리에 올려주세요"); }
+    catch (e) { if (e.name !== "AbortError") toast("이미지를 길게 눌러 저장해주세요"); }
+  } else if (INAPP) toast("이미지를 길게 눌러 저장해주세요");
+  else {
+    const a = document.createElement("a");
+    a.href = r.storyUrl; a.download = "GRAB-receipt.png"; a.click();
+    if (mode === "share") toast("저장한 이미지를 스토리에 올려주세요");
+  }
 }
 
 app.addEventListener("click", e => {
@@ -407,8 +433,7 @@ app.addEventListener("click", e => {
   }
   const id = e.target.closest("button, a")?.id;
   if (id === "go") location.hash = "#/result";
-  if (id === "share") share();
-  if (id === "save") makeReceipt().then(save);
+  if (id === "share" || id === "save") out(id);
   if (id === "again") picks = [];
 });
 
